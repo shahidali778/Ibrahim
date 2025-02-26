@@ -12,13 +12,19 @@ os.makedirs(DOWNLOAD_FOLDER, exist_ok=True)
 # ✅ Add your YouTube API Key here
 YOUTUBE_API_KEY = "AIzaSyD9OGlbU8eU5O4AAVeizGwVpeEzTjC9O6A"  # Replace with your actual API key
 
-@app.route("/", methods=["GET"])
-def home():
-    return jsonify({"message": "YouTube to MP3 Converter is running!"})
-
-@app.route("/convert", methods=["POST"])
+@app.route('/convert', methods=['GET', 'POST'])
 def convert():
-    try:
+    if request.method == 'GET':
+        url = request.args.get('url')
+    else:
+        data = request.get_json()
+        url = data.get('url')
+
+    if not url:
+        return jsonify({"error": "No URL provided"}), 400
+
+    # Your YouTube-to-MP3 conversion logic here...
+
         # ✅ Check if URL is provided
         data = request.json
         if not data or "url" not in data:
