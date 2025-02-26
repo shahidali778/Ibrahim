@@ -1,3 +1,7 @@
+from flask import Flask
+
+app = Flask(__name__)
+
 import re
 
 def extract_video_id(url):
@@ -16,7 +20,7 @@ def convert():
     if not video_id:
         return jsonify({"error": "Invalid YouTube URL"}), 400
 
-    api_url = f"https://www.googleapis.com/youtube/v3/videos?id={video_id}&key={API_KEY}&part=snippet"
+    api_url = f"https://www.googleapis.com/youtube/v3/videos?id={video_id}&key={AIzaSyD9OGlbU8eU5O4AAVeizGwVpeEzTjC9O6A}&part=snippet"
     response = requests.get(api_url)
 
     if response.status_code == 200:
