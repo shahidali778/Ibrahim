@@ -4,28 +4,20 @@ import requests
 
 app = Flask(__name__)
 
-# Load API Key from environment variable
-API_KEY = os.getenv("AIzaSyD9OGlbU8eU5O4AAVeizGwVpeEzTjC9O6A")  
+API_KEY = os.getenv("AIzaSyD9OGlbU8eU5O4AAVeizGwVpeEzTjC9O6A")
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return render_template('index.html')  # Ensure index.html exists inside a templates/ folder
 
 @app.route('/convert', methods=['POST'])
 def convert():
-    youtube_url = request.form.get('youtube_url', '').strip()
+    youtube_url = request.form.get('youtube_url')
 
     if not youtube_url:
         return jsonify({"error": "No URL provided"}), 400
 
-    # Extract video ID from URL (basic method)
-    if "v=" in youtube_url:
-        video_id = youtube_url.split("v=")[1].split("&")[0]
-    else:
-        return jsonify({"error": "Invalid YouTube URL"}), 400
-
-    # Make API request to YouTube
-    api_url = f"https://www.googleapis.com/youtube/v3/videos?id={video_id}&key={API_KEY}&part=snippet"
+    api_url = f"https://www.googleapis.com/youtube/v3/videos?id={youtube_url}&key={API_KEY}&part=snippet"
     response = requests.get(api_url)
 
     if response.status_code == 200:
@@ -35,6 +27,7 @@ def convert():
         return jsonify({"error": "Failed to fetch data"}), 500
 
 if __name__ == '__main__':
-    port = int(os.getenv("PORT", 5000))  # Render provides PORT dynamically
-    app.run(host="0.0.0.0", port=port, debug=False)
+    port = int(os.environ.get("PORT", 10000))  # Use Render's detected port
+    app.run(host='0.0.0.0', port=port)
 
+  
