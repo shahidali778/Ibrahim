@@ -1,30 +1,54 @@
-from flask import Flask, request, render_template, send_file
-from pytube import YouTube
-import os
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube to MP3 Converter</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+        }
+        input, button {
+            margin: 10px;
+            padding: 10px;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
 
-app = Flask(__name__)
+    <h1>YouTube to MP3 Converter</h1>
+    <input type="text" id="youtubeUrl" placeholder="Enter YouTube Video URL">
+    <button onclick="convertVideo()">Convert to MP3</button>
 
-# Ensure download directory exists
-download_folder = "downloads"
-os.makedirs(download_folder, exist_ok=True)
+    <p id="message"></p>
 
-@app.route('/')
-def index():
-    return render_template('index.html')
+    <script>
+        function convertVideo() {
+            let url = document.getElementById("youtubeUrl").value;
+            let formData = new FormData();
+            formData.append("url", url);
 
-@app.route('/convert', methods=['POST'])
-def convert():
-    try:
-        video_url = request.form['url']
-        yt = YouTube(video_url)
-        audio_stream = yt.streams.filter(only_audio=True).first()
-        
-        file_path = os.path.join(download_folder, yt.title + ".mp3")
-        audio_stream.download(output_path=download_folder, filename=yt.title + ".mp3")
-        
-        return send_file(file_path, as_attachment=True)
-    except Exception as e:
-        return f"Error: {str(e)}"
+            fetch("/convert", {
+                method: "POST",
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById("message").innerHTML = 
+                        `<a href="${data.download_url}" download>Download MP3</a>`;
+                } else {
+                    document.getElementById("message").innerText = "Error: " + data.error;
+                }
+            })
+            .catch(error => {
+                document.getElementById("message").innerText = "Error: " + error;
+            });
+        }
+    </script>
 
-if __name__ == '__main__':
-    app.run(debug=True)
+</body>
+</html>
