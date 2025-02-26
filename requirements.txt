@@ -2,5 +2,5 @@ flask
 yt-dlp
 gunicorn
 requests
-
+pytube
 
