@@ -1,35 +1,21 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>YouTube to MP3 Converter</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            padding: 20px;
-        }
-        form {
-            margin-top: 20px;
-        }
-        input {
-            width: 60%;
-            padding: 10px;
-            font-size: 16px;
-        }
-        button {
-            padding: 10px 20px;
-            font-size: 16px;
-            cursor: pointer;
-        }
-    </style>
-</head>
-<body>
-    <h2>YouTube to MP3 Converter</h2>
-    <form action="/convert" method="post">
-        <input type="text" name="url" placeholder="Enter YouTube Video URL" required>
-        <button type="submit">Convert</button>
-    </form>
-</body>
-</html>
+<form id="youtubeForm">
+    <input type="text" id="youtube_url" placeholder="Enter YouTube URL">
+    <button type="submit">Submit</button>
+</form>
+
+<script>
+document.getElementById("youtubeForm").addEventListener("submit", async function(event) {
+    event.preventDefault();
+    
+    let youtubeUrl = document.getElementById("youtube_url").value;
+    
+    let response = await fetch("/process", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ youtube_url: youtubeUrl })
+    });
+
+    let result = await response.json();
+    alert(result.message || result.error);
+});
+</script>
