@@ -1,36 +1,41 @@
-from flask import Flask, render_template, request, send_file
-from pytube import YouTube
 import os
+from flask import Flask, render_template, request, jsonify
+import requests
 
 app = Flask(__name__)
 
-# Ensure download directory exists
-DOWNLOAD_FOLDER = "downloads"
-if not os.path.exists(DOWNLOAD_FOLDER):
-    os.makedirs(DOWNLOAD_FOLDER)
+# Load API Key from environment variable
+API_KEY = os.getenv("AIzaSyD9OGlbU8eU5O4AAVeizGwVpeEzTjC9O6A")  
 
-@app.route("/")
+@app.route('/')
 def index():
-    return render_template("index.html")
+    return render_template('index.html')
 
-@app.route("/convert", methods=["POST"])
+@app.route('/convert', methods=['POST'])
 def convert():
-    try:
-        video_url = request.form["url"]
-        yt = YouTube(video_url)
-        
-        # Get the best audio stream
-        audio_stream = yt.streams.filter(only_audio=True).first()
-        file_path = audio_stream.download(output_path=DOWNLOAD_FOLDER)
-        
-        # Rename to .mp3
-        mp3_path = file_path.replace(".mp4", ".mp3").replace(".webm", ".mp3")
-        os.rename(file_path, mp3_path)
-        
-        return send_file(mp3_path, as_attachment=True)
+    youtube_url = request.form.get('youtube_url', '').strip()
 
-    except Exception as e:
-        return f"Error: {str(e)}"
+    if not youtube_url:
+        return jsonify({"error": "No URL provided"}), 400
 
-if __name__ == "__main__":
-    app.run(debug=True)
+    # Extract video ID from URL (basic method)
+    if "v=" in youtube_url:
+        video_id = youtube_url.split("v=")[1].split("&")[0]
+    else:
+        return jsonify({"error": "Invalid YouTube URL"}), 400
+
+    # Make API request to YouTube
+    api_url = f"https://www.googleapis.com/youtube/v3/videos?id={video_id}&key={API_KEY}&part=snippet"
+    response = requests.get(api_url)
+
+    if response.status_code == 200:
+        data = response.json()
+        return jsonify(data)
+    else:
+        return jsonify({"error": "Failed to fetch data"}), 500
+
+if __name__ == '__main__':
+    port = int(os.getenv("PORT", 5000))  # Render provides PORT dynamically
+    app.run(host="0.0.0.0", port=port, debug=False)
+
+
