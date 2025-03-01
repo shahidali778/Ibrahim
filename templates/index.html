@@ -4,40 +4,31 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>YouTube Converter</title>
-    <script>
-        async function submitForm(event) {
-            event.preventDefault();  // Prevents page reload
-
-            let youtubeUrl = document.getElementById("youtube_url").value.trim();
-            if (!youtubeUrl) {
-                alert("Please enter a YouTube URL!");
-                return;
-            }
-
-            let formData = new FormData();
-            formData.append("youtube_url", youtubeUrl);
-
-            try {
-                let response = await fetch("/convert", {
-                    method: "POST",
-                    body: formData
-                });
-
-                let data = await response.json();
-                document.getElementById("output").innerText = JSON.stringify(data, null, 2);
-            } catch (error) {
-                console.error("Error:", error);
-                alert("Something went wrong.");
-            }
-        }
-    </script>
 </head>
 <body>
-    <h2>YouTube to MP3 Converter</h2>
-    <form id="convertForm" onsubmit="submitForm(event)">
+    <h2>YouTube Video Info</h2>
+    <form id="youtubeForm">
         <input type="text" id="youtube_url" name="youtube_url" placeholder="Enter YouTube URL" required>
-        <button type="submit">Convert</button>
+        <button type="submit">Submit</button>
     </form>
-    <pre id="output"></pre>
+    <div id="result"></div>
+
+    <script>
+        document.getElementById("youtubeForm").addEventListener("submit", function(event) {
+            event.preventDefault();
+            let youtube_url = document.getElementById("youtube_url").value;
+
+            fetch("/convert", {
+                method: "POST",
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                body: "youtube_url=" + encodeURIComponent(youtube_url)
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById("result").innerText = JSON.stringify(data, null, 2);
+            })
+            .catch(error => console.error("Error:", error));
+        });
+    </script>
 </body>
 </html>
