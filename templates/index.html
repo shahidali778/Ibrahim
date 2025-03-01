@@ -1,21 +1,43 @@
-<form id="youtubeForm">
-    <input type="text" id="youtube_url" placeholder="Enter YouTube URL">
-    <button type="submit">Submit</button>
-</form>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Converter</title>
+    <script>
+        async function submitForm(event) {
+            event.preventDefault();  // Prevents page reload
 
-<script>
-document.getElementById("youtubeForm").addEventListener("submit", async function(event) {
-    event.preventDefault();
-    
-    let youtubeUrl = document.getElementById("youtube_url").value;
-    
-    let response = await fetch("/process", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ youtube_url: youtubeUrl })
-    });
+            let youtubeUrl = document.getElementById("youtube_url").value.trim();
+            if (!youtubeUrl) {
+                alert("Please enter a YouTube URL!");
+                return;
+            }
 
-    let result = await response.json();
-    alert(result.message || result.error);
-});
-</script>
+            let formData = new FormData();
+            formData.append("youtube_url", youtubeUrl);
+
+            try {
+                let response = await fetch("/convert", {
+                    method: "POST",
+                    body: formData
+                });
+
+                let data = await response.json();
+                document.getElementById("output").innerText = JSON.stringify(data, null, 2);
+            } catch (error) {
+                console.error("Error:", error);
+                alert("Something went wrong.");
+            }
+        }
+    </script>
+</head>
+<body>
+    <h2>YouTube to MP3 Converter</h2>
+    <form id="convertForm" onsubmit="submitForm(event)">
+        <input type="text" id="youtube_url" name="youtube_url" placeholder="Enter YouTube URL" required>
+        <button type="submit">Convert</button>
+    </form>
+    <pre id="output"></pre>
+</body>
+</html>
