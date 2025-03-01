@@ -1,11 +1,19 @@
 import os
-from flask import Flask, render_template, request, jsonify
+import re
 import requests
+from flask import Flask, render_template, request, jsonify
 
 app = Flask(__name__)
 
 # Load API Key from environment variable
-API_KEY = os.getenv("AIzaSyD9OGlbU8eU5O4AAVeizGwVpeEzTjC9O6A")  
+API_KEY = os.getenv("Youtube_API_Key")
+if not API_KEY:
+    raise ValueError("Error: Youtube_API_Key environment variable is missing!")
+
+# Function to extract video ID from various YouTube URL formats
+def extract_video_id(youtube_url):
+    match = re.search(r"(?:v=|\/)([0-9A-Za-z_-]{11})", youtube_url)
+    return match.group(1) if match else None
 
 @app.route('/')
 def index():
@@ -18,10 +26,8 @@ def convert():
     if not youtube_url:
         return jsonify({"error": "No URL provided"}), 400
 
-    # Extract video ID from URL (basic method)
-    if "v=" in youtube_url:
-        video_id = youtube_url.split("v=")[1].split("&")[0]
-    else:
+    video_id = extract_video_id(youtube_url)
+    if not video_id:
         return jsonify({"error": "Invalid YouTube URL"}), 400
 
     # Make API request to YouTube
@@ -30,12 +36,13 @@ def convert():
 
     if response.status_code == 200:
         data = response.json()
-        return jsonify(data)
+        if "items" in data and len(data["items"]) > 0:
+            return jsonify(data)
+        else:
+            return jsonify({"error": "No video found for this ID"}), 404
     else:
-        return jsonify({"error": "Failed to fetch data"}), 500
+        return jsonify({"error": f"YouTube API error: {response.status_code}"}), 500
 
 if __name__ == '__main__':
     port = int(os.getenv("PORT", 5000))  # Render provides PORT dynamically
     app.run(host="0.0.0.0", port=port, debug=False)
-
-
